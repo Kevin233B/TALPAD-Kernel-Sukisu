@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-20.04
     
     steps:
     - name: Checkout
@@ -20,22 +20,8 @@ jobs:
         sudo apt update
         sudo apt install -y \
           build-essential git wget curl \
-          libncurses-dev flex bison bc libelf-dev \
+          libncurses-dev flex bison bc libssl-dev libelf-dev \
           device-tree-compiler gawk ccache pigz zstd cpio rsync lzop
-    
-    - name: Install OpenSSL 1.1 (for kernel 4.19)
-      run: |
-        # 添加 Ubuntu 20.04 (focal) 的软件源获取 OpenSSL 1.1
-        sudo add-apt-repository -y "deb http://security.ubuntu.com/ubuntu focal-security main"
-        sudo apt update
-        sudo apt install -y libssl1.1 libssl-dev=1.1.1f-1ubuntu2.27
-        
-        # 创建软链接确保编译能找到
-        sudo ln -sf /usr/lib/x86_64-linux-gnu/libssl.so.1.1 /usr/lib/x86_64-linux-gnu/libssl.so
-        sudo ln -sf /usr/lib/x86_64-linux-gnu/libcrypto.so.1.1 /usr/lib/x86_64-linux-gnu/libcrypto.so
-        
-        # 验证
-        openssl version
     
     - name: Setup Linaro GCC
       run: |
@@ -49,7 +35,6 @@ jobs:
     - name: Verify toolchain
       run: |
         aarch64-linux-gnu-gcc --version
-        openssl version
     
     - name: Integrate SukiSU
       run: |
