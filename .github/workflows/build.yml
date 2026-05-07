@@ -52,6 +52,9 @@ jobs:
         echo "编译配置: tb8788p1_64_wifi_k419_defconfig"
         echo "========================================="
         make tb8788p1_64_wifi_k419_defconfig
+        cd arch/arm64/kernel/vdso
+        $(CROSS_COMPILE)gcc -E -P -D__ASSEMBLY__ -D__VDSO__ vdso.lds.S -o vdso.lds
+        cd ../../../..
         make HOSTCFLAGS="-Wno-deprecated-declarations" -j$(nproc)
         mkdir -p output/tb8788p1
         cp -r arch/arm64/boot output/tb8788p1/
@@ -63,6 +66,9 @@ jobs:
         echo "编译配置: ls12_mt8797_wifi_64_defconfig"
         echo "========================================="
         make ls12_mt8797_wifi_64_defconfig
+        cd arch/arm64/kernel/vdso
+        $(CROSS_COMPILE)gcc -E -P -D__ASSEMBLY__ -D__VDSO__ vdso.lds.S -o vdso.lds
+        cd ../../../..
         make HOSTCFLAGS="-Wno-deprecated-declarations" -j$(nproc)
         mkdir -p output/ls12_mt8797
         cp -r arch/arm64/boot output/ls12_mt8797/
@@ -74,6 +80,9 @@ jobs:
         echo "编译配置: ls14_mt8797_wifi_64_defconfig"
         echo "========================================="
         make ls14_mt8797_wifi_64_defconfig
+        cd arch/arm64/kernel/vdso
+        $(CROSS_COMPILE)gcc -E -P -D__ASSEMBLY__ -D__VDSO__ vdso.lds.S -o vdso.lds
+        cd ../../../..
         make HOSTCFLAGS="-Wno-deprecated-declarations" -j$(nproc)
         mkdir -p output/ls14_mt8797
         cp -r arch/arm64/boot output/ls14_mt8797/
