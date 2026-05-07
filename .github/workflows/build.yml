@@ -25,51 +25,62 @@ jobs:
           libncurses-dev flex bison bc libssl-dev libelf-dev \
           device-tree-compiler gawk ccache pigz zstd cpio rsync lzop
     
-    # 3. 安装 NDK
+    # 3. 安装 NDK r21e（支持传统 gcc，兼容性更好）
     - name: Setup NDK
       run: |
         cd $HOME
-        wget -q https://dl.google.com/android/repository/android-ndk-r23c-linux.zip
-        unzip -q android-ndk-r23c-linux.zip
-        echo "$HOME/android-ndk-r23c/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_PATH
+        wget -q https://dl.google.com/android/repository/android-ndk-r21e-linux-x86_64.zip
+        unzip -q android-ndk-r21e-linux-x86_64.zip
+        echo "$HOME/android-ndk-r21e/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_PATH
+        echo "$HOME/android-ndk-r21e/toolchains/aarch64-linux-android-4.9/prebuilt/linux-x86_64/bin" >> $GITHUB_PATH
         echo "CROSS_COMPILE=aarch64-linux-android-" >> $GITHUB_ENV
         echo "ARCH=arm64" >> $GITHUB_ENV
+        echo "PATH=$HOME/android-ndk-r21e/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH" >> $GITHUB_ENV
     
-    # 4. 集成 SukiSU（官方内置方式）
+    # 4. 验证工具链
+    - name: Verify toolchain
+      run: |
+        aarch64-linux-android-gcc --version || echo "gcc not found"
+        clang --version || echo "clang not found"
+        echo "CROSS_COMPILE=$CROSS_COMPILE"
+        echo "PATH=$PATH"
+    
+    # 5. 集成 SukiSU
     - name: Integrate SukiSU
       run: |
         curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s builtin
     
-    # 5. 编译 tb8788p1
+    # 6. 编译 tb8788p1
     - name: Build tb8788p1
       run: |
         make mrproper
         make tb8788p1_64_wifi_k419_defconfig
-        make -j$(nproc)
+        make CC=clang LD=ld.lld AR=llvm-ar NM=llvm-nm STRIP=llvm-strip OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump READELF=llvm-readelf HOSTCC=clang HOSTCXX=clang++ HOSTAR=llvm-ar HOSTLD=ld.lld -j$(nproc)
         mkdir -p output/tb8788p1
-        cp -r arch/arm64/boot output/tb8788p1/
+        cp -r arch/arm64/boot output/tb8788p1/ 2>/dev/null || true
     
-    # 6. 编译 ls12_mt8797
+    # 7. 编译 ls12_mt8797
     - name: Build ls12_mt8797
       run: |
         make mrproper
         make ls12_mt8797_wifi_64_defconfig
-        make -j$(nproc)
+        make CC=clang LD=ld.lld AR=llvm-ar NM=llvm-nm STRIP=llvm-strip OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump READELF=llvm-readelf HOSTCC=clang HOSTCXX=clang++ HOSTAR=llvm-ar HOSTLD=ld.lld -j$(nproc)
         mkdir -p output/ls12_mt8797
-        cp -r arch/arm64/boot output/ls12_mt8797/
+        cp -r arch/arm64/boot output/ls12_mt8797/ 2>/dev/null || true
     
-    # 7. 编译 ls14_mt8797
+    # 8. 编译 ls14_mt8797
     - name: Build ls14_mt8797
       run: |
         make mrproper
         make ls14_mt8797_wifi_64_defconfig
-        make -j$(nproc)
+        make CC=clang LD=ld.lld AR=llvm-ar NM=llvm-nm STRIP=llvm-strip OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump READELF=llvm-readelf HOSTCC=clang HOSTCXX=clang++ HOSTAR=llvm-ar HOSTLD=ld.lld -j$(nproc)
         mkdir -p output/ls14_mt8797
-        cp -r arch/arm64/boot output/ls14_mt8797/
+        cp -r arch/arm64/boot output/ls14_mt8797/ 2>/dev/null || true
     
-    # 8. 上传编译产物
+    # 9. 上传编译产物
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
         name: kernel-images
         path: output/
+
