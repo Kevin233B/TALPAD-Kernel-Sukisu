@@ -25,25 +25,20 @@ jobs:
           libncurses-dev flex bison bc libssl-dev libelf-dev \
           device-tree-compiler gawk ccache pigz zstd cpio rsync lzop
     
-    # 3. 安装 NDK r21e（支持传统 gcc，兼容性更好）
-    - name: Setup NDK
+    # 3. 安装 Linaro GCC 工具链（传统 gcc，4.19 内核推荐）
+    - name: Setup Linaro GCC
       run: |
         cd $HOME
-        wget -q https://dl.google.com/android/repository/android-ndk-r21e-linux-x86_64.zip
-        unzip -q android-ndk-r21e-linux-x86_64.zip
-        echo "$HOME/android-ndk-r21e/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_PATH
-        echo "$HOME/android-ndk-r21e/toolchains/aarch64-linux-android-4.9/prebuilt/linux-x86_64/bin" >> $GITHUB_PATH
-        echo "CROSS_COMPILE=aarch64-linux-android-" >> $GITHUB_ENV
+        wget -q https://releases.linaro.org/components/toolchain/binaries/7.5-2019.12/aarch64-linux-gnu/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu.tar.xz
+        tar -xf gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu.tar.xz
+        echo "$HOME/gcc-linaro-7.5.0-2019.12-x86_64_aarch64-linux-gnu/bin" >> $GITHUB_PATH
+        echo "CROSS_COMPILE=aarch64-linux-gnu-" >> $GITHUB_ENV
         echo "ARCH=arm64" >> $GITHUB_ENV
-        echo "PATH=$HOME/android-ndk-r21e/toolchains/llvm/prebuilt/linux-x86_64/bin:$PATH" >> $GITHUB_ENV
     
     # 4. 验证工具链
     - name: Verify toolchain
       run: |
-        aarch64-linux-android-gcc --version || echo "gcc not found"
-        clang --version || echo "clang not found"
-        echo "CROSS_COMPILE=$CROSS_COMPILE"
-        echo "PATH=$PATH"
+        aarch64-linux-gnu-gcc --version
     
     # 5. 集成 SukiSU
     - name: Integrate SukiSU
@@ -55,7 +50,7 @@ jobs:
       run: |
         make mrproper
         make tb8788p1_64_wifi_k419_defconfig
-        make CC=clang LD=ld.lld AR=llvm-ar NM=llvm-nm STRIP=llvm-strip OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump READELF=llvm-readelf HOSTCC=clang HOSTCXX=clang++ HOSTAR=llvm-ar HOSTLD=ld.lld -j$(nproc)
+        make -j$(nproc)
         mkdir -p output/tb8788p1
         cp -r arch/arm64/boot output/tb8788p1/ 2>/dev/null || true
     
@@ -64,7 +59,7 @@ jobs:
       run: |
         make mrproper
         make ls12_mt8797_wifi_64_defconfig
-        make CC=clang LD=ld.lld AR=llvm-ar NM=llvm-nm STRIP=llvm-strip OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump READELF=llvm-readelf HOSTCC=clang HOSTCXX=clang++ HOSTAR=llvm-ar HOSTLD=ld.lld -j$(nproc)
+        make -j$(nproc)
         mkdir -p output/ls12_mt8797
         cp -r arch/arm64/boot output/ls12_mt8797/ 2>/dev/null || true
     
@@ -73,7 +68,7 @@ jobs:
       run: |
         make mrproper
         make ls14_mt8797_wifi_64_defconfig
-        make CC=clang LD=ld.lld AR=llvm-ar NM=llvm-nm STRIP=llvm-strip OBJCOPY=llvm-objcopy OBJDUMP=llvm-objdump READELF=llvm-readelf HOSTCC=clang HOSTCXX=clang++ HOSTAR=llvm-ar HOSTLD=ld.lld -j$(nproc)
+        make -j$(nproc)
         mkdir -p output/ls14_mt8797
         cp -r arch/arm64/boot output/ls14_mt8797/ 2>/dev/null || true
     
@@ -83,4 +78,3 @@ jobs:
       with:
         name: kernel-images
         path: output/
-
