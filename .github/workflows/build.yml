@@ -48,7 +48,6 @@ jobs:
     # 6. 编译 tb8788p1
     - name: Build tb8788p1
       run: |
-        make mrproper
         make tb8788p1_64_wifi_k419_defconfig
         make -j$(nproc)
         mkdir -p output/tb8788p1
@@ -57,7 +56,7 @@ jobs:
     # 7. 编译 ls12_mt8797
     - name: Build ls12_mt8797
       run: |
-        make mrproper
+        make clean
         make ls12_mt8797_wifi_64_defconfig
         make -j$(nproc)
         mkdir -p output/ls12_mt8797
@@ -66,7 +65,7 @@ jobs:
     # 8. 编译 ls14_mt8797
     - name: Build ls14_mt8797
       run: |
-        make mrproper
+        make clean
         make ls14_mt8797_wifi_64_defconfig
         make -j$(nproc)
         mkdir -p output/ls14_mt8797
