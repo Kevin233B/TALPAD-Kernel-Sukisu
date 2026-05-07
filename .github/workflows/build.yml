@@ -35,6 +35,7 @@ jobs:
     - name: Verify toolchain
       run: |
         aarch64-linux-gnu-gcc --version
+        echo "CROSS_COMPILE=${CROSS_COMPILE}"
     
     - name: Integrate SukiSU
       run: |
@@ -53,7 +54,7 @@ jobs:
         echo "========================================="
         make tb8788p1_64_wifi_k419_defconfig
         cd arch/arm64/kernel/vdso
-        $(CROSS_COMPILE)gcc -E -P -D__ASSEMBLY__ -D__VDSO__ vdso.lds.S -o vdso.lds
+        aarch64-linux-gnu-gcc -E -P -D__ASSEMBLY__ -D__VDSO__ vdso.lds.S -o vdso.lds
         cd ../../../..
         make HOSTCFLAGS="-Wno-deprecated-declarations" -j$(nproc)
         mkdir -p output/tb8788p1
@@ -67,7 +68,7 @@ jobs:
         echo "========================================="
         make ls12_mt8797_wifi_64_defconfig
         cd arch/arm64/kernel/vdso
-        $(CROSS_COMPILE)gcc -E -P -D__ASSEMBLY__ -D__VDSO__ vdso.lds.S -o vdso.lds
+        aarch64-linux-gnu-gcc -E -P -D__ASSEMBLY__ -D__VDSO__ vdso.lds.S -o vdso.lds
         cd ../../../..
         make HOSTCFLAGS="-Wno-deprecated-declarations" -j$(nproc)
         mkdir -p output/ls12_mt8797
@@ -81,7 +82,7 @@ jobs:
         echo "========================================="
         make ls14_mt8797_wifi_64_defconfig
         cd arch/arm64/kernel/vdso
-        $(CROSS_COMPILE)gcc -E -P -D__ASSEMBLY__ -D__VDSO__ vdso.lds.S -o vdso.lds
+        aarch64-linux-gnu-gcc -E -P -D__ASSEMBLY__ -D__VDSO__ vdso.lds.S -o vdso.lds
         cd ../../../..
         make HOSTCFLAGS="-Wno-deprecated-declarations" -j$(nproc)
         mkdir -p output/ls14_mt8797
