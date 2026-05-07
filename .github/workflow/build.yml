@@ -1,0 +1,75 @@
+name: Build Kernel with SukiSU
+
+on:
+  push:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    
+    steps:
+    # 1. 完整下载仓库
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    # 2. 安装依赖
+    - name: Install dependencies
+      run: |
+        sudo apt update
+        sudo apt install -y \
+          build-essential git wget curl \
+          libncurses-dev flex bison bc libssl-dev libelf-dev \
+          device-tree-compiler gawk ccache pigz zstd cpio rsync lzop
+    
+    # 3. 安装 NDK
+    - name: Setup NDK
+      run: |
+        cd $HOME
+        wget -q https://dl.google.com/android/repository/android-ndk-r23c-linux.zip
+        unzip -q android-ndk-r23c-linux.zip
+        echo "$HOME/android-ndk-r23c/toolchains/llvm/prebuilt/linux-x86_64/bin" >> $GITHUB_PATH
+        echo "CROSS_COMPILE=aarch64-linux-android-" >> $GITHUB_ENV
+        echo "ARCH=arm64" >> $GITHUB_ENV
+    
+    # 4. 集成 SukiSU（官方内置方式）
+    - name: Integrate SukiSU
+      run: |
+        curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s builtin
+    
+    # 5. 编译 tb8788p1
+    - name: Build tb8788p1
+      run: |
+        make mrproper
+        make tb8788p1_64_wifi_k419_defconfig
+        make -j$(nproc)
+        mkdir -p output/tb8788p1
+        cp -r arch/arm64/boot output/tb8788p1/
+    
+    # 6. 编译 ls12_mt8797
+    - name: Build ls12_mt8797
+      run: |
+        make mrproper
+        make ls12_mt8797_wifi_64_defconfig
+        make -j$(nproc)
+        mkdir -p output/ls12_mt8797
+        cp -r arch/arm64/boot output/ls12_mt8797/
+    
+    # 7. 编译 ls14_mt8797
+    - name: Build ls14_mt8797
+      run: |
+        make mrproper
+        make ls14_mt8797_wifi_64_defconfig
+        make -j$(nproc)
+        mkdir -p output/ls14_mt8797
+        cp -r arch/arm64/boot output/ls14_mt8797/
+    
+    # 8. 上传编译产物
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: kernel-images
+        path: output/
