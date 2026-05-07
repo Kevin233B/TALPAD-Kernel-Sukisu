@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     
     steps:
     - name: Checkout
@@ -40,44 +40,26 @@ jobs:
       run: |
         curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s builtin
     
-    - name: Fix script permissions
-      run: |
-        chmod +x scripts/gcc-version.sh 2>/dev/null || true
-        chmod +x scripts/clang-version.sh 2>/dev/null || true
-        chmod +x scripts/gcc-plugin.sh 2>/dev/null || true
-    
     - name: Build tb8788p1
       run: |
-        echo "========================================="
-        echo "编译配置: tb8788p1_64_wifi_k419_defconfig"
-        echo "========================================="
         make tb8788p1_64_wifi_k419_defconfig
-        make -j$(nproc)
+        make HOSTCFLAGS="-Wno-deprecated-declarations" -j$(nproc)
         mkdir -p output/tb8788p1
-        cp -r arch/arm64/boot output/tb8788p1/ 2>/dev/null || true
-        echo "tb8788p1 编译完成"
+        cp -r arch/arm64/boot output/tb8788p1/
     
     - name: Build ls12_mt8797
       run: |
-        echo "========================================="
-        echo "编译配置: ls12_mt8797_wifi_64_defconfig"
-        echo "========================================="
         make ls12_mt8797_wifi_64_defconfig
-        make -j$(nproc)
+        make HOSTCFLAGS="-Wno-deprecated-declarations" -j$(nproc)
         mkdir -p output/ls12_mt8797
-        cp -r arch/arm64/boot output/ls12_mt8797/ 2>/dev/null || true
-        echo "ls12_mt8797 编译完成"
+        cp -r arch/arm64/boot output/ls12_mt8797/
     
     - name: Build ls14_mt8797
       run: |
-        echo "========================================="
-        echo "编译配置: ls14_mt8797_wifi_64_defconfig"
-        echo "========================================="
         make ls14_mt8797_wifi_64_defconfig
-        make -j$(nproc)
+        make HOSTCFLAGS="-Wno-deprecated-declarations" -j$(nproc)
         mkdir -p output/ls14_mt8797
-        cp -r arch/arm64/boot output/ls14_mt8797/ 2>/dev/null || true
-        echo "ls14_mt8797 编译完成"
+        cp -r arch/arm64/boot output/ls14_mt8797/
     
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
