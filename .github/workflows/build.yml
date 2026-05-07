@@ -16,16 +16,16 @@ jobs:
       with:
         fetch-depth: 0
     
-    # 2. 安装依赖
+    # 2. 安装编译依赖
     - name: Install dependencies
       run: |
         sudo apt update
         sudo apt install -y \
           build-essential git wget curl \
           libncurses-dev flex bison bc libssl-dev libelf-dev \
-          device-tree-compiler gawk ccache pigz zstd cpio rsync lzop
+          device-tree-compiler gawk ccache pigz zstd cpio rsync lzop dos2unix
     
-    # 3. 安装 Linaro GCC 工具链（传统 gcc，4.19 内核推荐）
+    # 3. 安装 Linaro GCC 工具链
     - name: Setup Linaro GCC
       run: |
         cd $HOME
@@ -45,33 +45,52 @@ jobs:
       run: |
         curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s builtin
     
-    # 6. 编译 tb8788p1
+    # 6. 修复所有 Kconfig 文件（Windows 换行符问题）
+    - name: Fix Kconfig files
+      run: |
+        echo "Converting all Kconfig files to Unix format (LF)..."
+        find . -name "Kconfig" -type f -exec dos2unix {} \;
+        echo "Removing special control characters..."
+        find . -name "Kconfig" -type f -exec sed -i 's/\r$//; s/[^[:print:]\t]//g' {} \;
+        echo "Kconfig files fixed."
+    
+    # 7. 编译 tb8788p1
     - name: Build tb8788p1
       run: |
+        echo "========================================="
+        echo "编译配置: tb8788p1_64_wifi_k419_defconfig"
+        echo "========================================="
         make tb8788p1_64_wifi_k419_defconfig
         make -j$(nproc)
         mkdir -p output/tb8788p1
         cp -r arch/arm64/boot output/tb8788p1/ 2>/dev/null || true
+        echo "tb8788p1 编译完成"
     
-    # 7. 编译 ls12_mt8797
+    # 8. 编译 ls12_mt8797
     - name: Build ls12_mt8797
       run: |
-        make clean
+        echo "========================================="
+        echo "编译配置: ls12_mt8797_wifi_64_defconfig"
+        echo "========================================="
         make ls12_mt8797_wifi_64_defconfig
         make -j$(nproc)
         mkdir -p output/ls12_mt8797
         cp -r arch/arm64/boot output/ls12_mt8797/ 2>/dev/null || true
+        echo "ls12_mt8797 编译完成"
     
-    # 8. 编译 ls14_mt8797
+    # 9. 编译 ls14_mt8797
     - name: Build ls14_mt8797
       run: |
-        make clean
+        echo "========================================="
+        echo "编译配置: ls14_mt8797_wifi_64_defconfig"
+        echo "========================================="
         make ls14_mt8797_wifi_64_defconfig
         make -j$(nproc)
         mkdir -p output/ls14_mt8797
         cp -r arch/arm64/boot output/ls14_mt8797/ 2>/dev/null || true
+        echo "ls14_mt8797 编译完成"
     
-    # 9. 上传编译产物
+    # 10. 上传所有编译产物
     - name: Upload artifacts
       uses: actions/upload-artifact@v4
       with:
